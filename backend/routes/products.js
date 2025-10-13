@@ -1,0 +1,77 @@
+import express from 'express'
+import Product from '../models/Product.js'
+
+const router = express.Router()
+
+router.get('/', async (req, res) => {
+  try {
+    const { category, search, sort, page = 1, limit = 12 } = req.query
+    const query = { isActive: true }
+    
+    if (category) query.category = category
+    if (search) query.$text = { $search: search }
+    
+    const products = await Product.find(query)
+      .populate('category supplier')
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort(sort || '-createdAt')
+    
+    const count = await Product.countDocuments(query)
+    
+    res.json({
+      products,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      total: count
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.get('/:slug', async (req, res) => {
+  try {
+    const product = await Product.findOne({ slug: req.params.slug })
+      .populate('category supplier')
+    
+    if (!product) return res.status(404).json({ error: 'Product not found' })
+    
+    product.views += 1
+    await product.save()
+    
+    res.json(product)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/', async (req, res) => {
+  try {
+    const product = new Product(req.body)
+    await product.save()
+    res.status(201).json(product)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.put('/:id', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    res.json(product)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.delete('/:id', async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Product deleted' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+export default router

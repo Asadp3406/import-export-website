@@ -6,7 +6,8 @@ import productRoutes from './routes/products.js'
 import enquiryRoutes from './routes/enquiries.js'
 import supplierRoutes from './routes/suppliers.js'
 import categoryRoutes from './routes/categories.js'
-
+import loginRoutes from './routes/auth.js';
+import signupRoutes from './routes/auth.js';
 dotenv.config()
 
 const app = express()
@@ -24,7 +25,8 @@ app.use('/api/products', productRoutes)
 app.use('/api/enquiries', enquiryRoutes)
 app.use('/api/suppliers', supplierRoutes)
 app.use('/api/categories', categoryRoutes)
-
+app.use('/api/auth/signup', signupRoutes)
+app.use('/api/auth/login', loginRoutes)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' })
 })

@@ -17,18 +17,15 @@ const supplierSchema = new mongoose.Schema({
     country: { type: String, default: 'India' },
     pincode: String
   },
-  categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
-  productDescription: { type: String },
-  certifications: [String],
-  images: [String],
-  yearsInBusiness: { type: Number },
-  isVerified: { type: Boolean, default: false },
-  isActive: { type: Boolean, default: false },
-  status: { 
+  categoryOption: { 
     type: String, 
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
-  }
+    enum: ['Ayurveda & Herbal', 'Electronics', 'Agriculture', 'Textiles', 'Machinery', 'Chemicals', 'Food Products'],
+    required: true 
+  },
+  productDescription: { type: String },
+  
+  
+  
 }, { timestamps: true })
 
 export default mongoose.model('Supplier', supplierSchema)

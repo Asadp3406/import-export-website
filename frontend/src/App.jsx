@@ -6,7 +6,8 @@ import ProductListingPage from './pages/ProductListingPage'
 import ProductDetailPage from './pages/ProductDetailPage'
 import SupplierRegistration from './pages/SupplierRegistration'
 import AdminDashboard from './pages/AdminDashboard'
-
+import Login from './pages/Login'
+import Signup from './pages/Signup'
 function App() {
   return (
     <Router>
@@ -19,6 +20,8 @@ function App() {
             <Route path="/product/:productSlug" element={<ProductDetailPage />} />
             <Route path="/become-supplier" element={<SupplierRegistration />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           </Routes>
         </main>
         <Footer />

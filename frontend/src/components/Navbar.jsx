@@ -61,11 +61,11 @@ export default function Navbar() {
           </form>
 
           <div className="hidden lg:flex items-center space-x-4">
-            <button className="flex items-center space-x-1 text-gray-700 hover:text-primary">
+            <button onClick={() => navigate("/admin")} className="flex items-center space-x-1 text-gray-700 hover:text-primary">
               <Globe size={18} />
               <span>EN</span>
             </button>
-            <button className="flex items-center space-x-1 text-gray-700 hover:text-primary">
+            <button onClick={() => navigate("/login")} className="flex items-center space-x-1 text-gray-700 hover:text-primary">
               <User size={18} />
               <span>Login</span>
             </button>
@@ -108,7 +108,12 @@ export default function Navbar() {
               </div>
             </form>
             <div className="space-y-2">
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Login</button>
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </button>
               <Link to="/become-supplier" className="block w-full text-center btn-secondary">
                 Become a Supplier
               </Link>

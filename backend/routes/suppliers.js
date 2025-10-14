@@ -40,20 +40,6 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.patch('/:id/status', async (req, res) => {
-  try {
-    const supplier = await Supplier.findByIdAndUpdate(
-      req.params.id,
-      { 
-        status: req.body.status,
-        isActive: req.body.status === 'approved'
-      },
-      { new: true }
-    )
-    res.json(supplier)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
-  }
-})
+
 
 export default router

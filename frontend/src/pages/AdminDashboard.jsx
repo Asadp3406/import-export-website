@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Package, Users, MessageSquare, TrendingUp, Eye, Plus, Edit, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Package, Users, MessageSquare, TrendingUp, Eye, Plus } from 'lucide-react'
+import api from '../api'
 
 const stats = [
   { icon: Package, label: 'Total Products', value: '1,250', change: '+12%' },
@@ -14,13 +15,18 @@ const recentEnquiries = [
   { id: 3, product: 'Basmati Rice', user: 'Mike Johnson', email: 'mike@example.com', date: '2025-01-09', status: 'new' }
 ]
 
-const supplierRequests = [
-  { id: 1, company: 'ABC Exports', contact: 'Raj Kumar', email: 'raj@abc.com', category: 'Textiles', date: '2025-01-10' },
-  { id: 2, company: 'XYZ Industries', contact: 'Priya Sharma', email: 'priya@xyz.com', category: 'Electronics', date: '2025-01-09' }
-]
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [suppliers, setSuppliers] = useState([])
+
+  useEffect(() => {
+    if (activeTab === 'suppliers') {
+      api.get('/suppliers')
+        .then(res => setSuppliers(res.data))
+        .catch(() => setSuppliers([]))
+    }
+  }, [activeTab])
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -153,23 +159,63 @@ export default function AdminDashboard() {
             {activeTab === 'suppliers' && (
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-6">Supplier Requests</h3>
-                <div className="space-y-4">
-                  {supplierRequests.map(request => (
-                    <div key={request.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {suppliers.length === 0 && (
+                    <div className="text-gray-500">No supplier requests found.</div>
+                  )}
+                  {suppliers.map(supplier => (
+                    <div key={supplier._id} className="border rounded-lg bg-white shadow p-6 flex flex-col">
+                      <h4 className="font-semibold text-primary text-lg mb-2">{supplier.companyName}</h4>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Contact Person:</span> {supplier.contactPerson}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Email:</span> {supplier.email}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Phone:</span> {supplier.phone}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Business Type:</span> {supplier.businessType}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Categories:</span> {Array.isArray(supplier.categories) ? supplier.categories.join(', ') : supplier.categories}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Product Description:</span> {supplier.productDescription}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Certifications:</span> {Array.isArray(supplier.certifications) && supplier.certifications.length > 0 ? supplier.certifications.join(', ') : 'None'}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Address:</span>
                         <div>
-                          <h4 className="font-semibold text-gray-800">{request.company}</h4>
-                          <p className="text-sm text-gray-600">Contact: {request.contact}</p>
-                          <p className="text-sm text-gray-600">Email: {request.email}</p>
-                          <p className="text-sm text-gray-600">Category: {request.category}</p>
-                          <p className="text-xs text-gray-500 mt-2">Submitted: {request.date}</p>
+                          {supplier.address?.street && <span>{supplier.address.street}, </span>}
+                          {supplier.address?.city && <span>{supplier.address.city}, </span>}
+                          {supplier.address?.state && <span>{supplier.address.state}, </span>}
+                          {supplier.address?.country && <span>{supplier.address.country}, </span>}
+                          {supplier.address?.pincode && <span>{supplier.address.pincode}</span>}
                         </div>
-                        <div className="flex gap-2">
-                          <button className="btn-secondary px-4 py-2 text-sm">Approve</button>
-                          <button className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600">
-                            Reject
-                          </button>
-                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {supplier.images && supplier.images.length > 0 ? (
+                          supplier.images.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={img}
+                              alt="Supplier"
+                              className="w-16 h-16 object-cover rounded border"
+                            />
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400">No images</span>
+                        )}
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <button className="btn-secondary px-4 py-2 text-sm">Approve</button>
+                        <button className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600">
+                          Reject
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -182,3 +228,4 @@ export default function AdminDashboard() {
     </div>
   )
 }
+

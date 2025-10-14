@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 const enquirySchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-  supplier: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', required: true },
+  supplier: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
   name: { type: String, required: true },
   email: { type: String, required: true },
   phone: { type: String, required: true },

@@ -1,18 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { ChevronDown, Filter, X } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
-
-const mockProducts = Array(12).fill(null).map((_, i) => ({
-  id: i + 1,
-  name: `Product ${i + 1} - High Quality Export Grade`,
-  price: `₹${(i + 1) * 100} - ₹${(i + 1) * 200}`,
-  moq: `${(i + 1) * 50} ${i % 2 === 0 ? 'Kg' : 'Pieces'}`,
-  image: `https://images.unsplash.com/photo-${1580000000000 + i * 10000000}?w=400`,
-  seller: `Supplier ${i + 1} Ltd`,
-  location: ['Mumbai', 'Delhi', 'Bangalore', 'Chennai'][i % 4] + ', India',
-  attributes: ['Certified', 'Export Quality', 'Premium']
-}))
+import api from '../api'
 
 const businessTypes = ['Manufacturer', 'Exporter', 'Wholesaler', 'Retailer', 'Supplier']
 const relatedCategories = ['Herbal Products', 'Ayurvedic Medicine', 'Health Supplements', 'Natural Extracts']
@@ -22,6 +12,23 @@ export default function ProductListingPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [priceRange, setPriceRange] = useState([0, 10000])
   const [selectedBusinessTypes, setSelectedBusinessTypes] = useState([])
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.get('/products')
+        setProducts(response.data.products || [])
+      } catch (error) {
+        console.error('Failed to fetch products:', error)
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProducts()
+  }, [])
 
   const toggleBusinessType = (type) => {
     setSelectedBusinessTypes(prev =>
@@ -120,7 +127,7 @@ export default function ProductListingPage() {
             <div className="bg-white rounded-lg shadow-md p-4 mb-6">
               <div className="flex flex-wrap gap-4 items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing <span className="font-semibold">1-12</span> of <span className="font-semibold">1,250</span> products
+                  Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
                 </div>
                 <select className="px-4 py-2 border border-gray-300 rounded-lg text-sm">
                   <option>Sort by: Relevance</option>
@@ -131,30 +138,22 @@ export default function ProductListingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-
-            <div className="flex justify-center gap-2 mt-8">
-              <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                Previous
-              </button>
-              {[1, 2, 3, 4, 5].map(page => (
-                <button
-                  key={page}
-                  className={`px-4 py-2 rounded-lg ${
-                    page === 1 ? 'bg-primary text-white' : 'border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                Next
-              </button>
-            </div>
+            {loading ? (
+              <div className="text-center py-12 bg-white rounded-lg shadow-md">
+                <div className="text-gray-600">Loading products...</div>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-lg shadow-md">
+                <div className="text-gray-600 mb-2">No products available yet.</div>
+                <p className="text-sm text-gray-500">Check back soon for new products!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.map(product => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+            )}
           </main>
         </div>
       </div>

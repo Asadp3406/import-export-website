@@ -3,25 +3,33 @@ import { Link, useNavigate } from "react-router-dom";
 import api from '../api'
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "", role: "user" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const res = await api.post("/auth/login", form);
-      if (res.data && res.data.user) {
-        alert("Login successful!");
+      
+      if (res.data && res.data.user && res.data.token) {
+        // Store token and user data in localStorage
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        
+        alert(`✅ Login successful! Welcome ${res.data.user.name}`);
+        
+        // Navigate based on role
         if (res.data.user.role === "admin") {
           navigate("/admin");
         } else {
           navigate("/");
         }
       } else {
-        alert("Login failed");
+        alert("❌ Login failed");
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      console.error('Login error:', err);
+      alert(`❌ ${err.response?.data?.message || "Login failed"}`);
     }
   };
 
@@ -44,14 +52,7 @@ export default function Login() {
             required
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
-          <select
-            className="border p-2 rounded-md focus:ring focus:ring-blue-300"
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-          >
-            <option value="buyer">Buyer</option>
-            <option value="admin">Admin</option>
-          </select>
+
           <button
             type="submit"
             className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"

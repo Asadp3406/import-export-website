@@ -9,7 +9,6 @@ router.get('/', async (req, res) => {
     const query = status ? { status } : {}
     
     const suppliers = await Supplier.find(query)
-      .populate('categories')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort('-createdAt')

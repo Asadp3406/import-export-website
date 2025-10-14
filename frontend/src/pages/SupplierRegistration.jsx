@@ -44,10 +44,12 @@ export default function SupplierRegistration() {
   // Submit form as JSON
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log('📤 Submitting form data:', formData)
     try {
-      await api.post('/suppliers', formData, {
+      const response = await api.post('/suppliers', formData, {
         headers: { 'Content-Type': 'application/json' }
       })
+      console.log('✅ Success response:', response.data)
       alert('✅ Registration submitted! Our team will contact you within 24 hours.')
       // Optional: Reset form
       setFormData({
@@ -67,11 +69,14 @@ export default function SupplierRegistration() {
         productDescription: ''
       })
     } catch (err) {
-      console.error('❌ Registration failed:', err.response?.data || err.message)
-      alert('❌ Registration failed. Please try again.')
+      console.error('❌ Registration failed:', err)
+      console.error('Error response:', err.response?.data)
+      console.error('Error status:', err.response?.status)
+      const errorMsg = err.response?.data?.error || err.message
+      alert(`❌ Registration failed: ${errorMsg}`)
     }
   }
-  
+
   return (
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,47 +104,47 @@ export default function SupplierRegistration() {
                 <input type="tel" name="phone" required className="input-field"
                   value={formData.phone} onChange={handleChange} />
               </div>
-                       <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Business Type *
-  </label>
-  <select
-    name="businessType"
-    required
-    className="input-field"
-    value={formData.businessType}
-    onChange={handleChange}
-  >
-    <option value="">Select Type</option>
-    {businessTypes.map((type) => (
-      <option key={type} value={type}>
-        {type.charAt(0).toUpperCase() + type.slice(1)}
-      </option>
-    ))}
-  </select>
-</div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business Type *
+                </label>
+                <select
+                  name="businessType"
+                  required
+                  className="input-field"
+                  value={formData.businessType}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Type</option>
+                  {businessTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Product Category *
-  </label>
-  <select
-    name="productCategory"
-    required
-    className="input-field"
-    value={formData.productCategory}
-    onChange={handleChange}
-  >
-    <option value="">Select Category</option>
-    {categoryOptions.map((type) => (
-      <option key={type} value={type}>
-        {type.charAt(0).toUpperCase() + type.slice(1)}
-      </option>
-    ))}
-  </select>
-</div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Product Category *
+                </label>
+                <select
+                  name="categoryOption"
+                  required
+                  className="input-field"
+                  value={formData.categoryOption}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Category</option>
+                  {categoryOptions.map((type) => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
                 <input type="text" name="address.street" className="input-field"
@@ -174,7 +179,7 @@ export default function SupplierRegistration() {
                 value={formData.productDescription} onChange={handleChange} />
             </div>
 
-            
+
             <div className="flex items-start">
               <input type="checkbox" required className="mt-1 mr-2" />
               <label className="text-sm text-gray-600">

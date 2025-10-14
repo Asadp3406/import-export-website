@@ -15,8 +15,8 @@ router.post("/signup", async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword, role });
+    // Don't hash password here - User model pre-save hook will do it
+    const user = new User({ name, email, password, role: role || 'user' });
     await user.save();
 
     const token = jwt.sign(
@@ -30,9 +30,10 @@ router.post("/signup", async (req, res) => {
       token,
     });
   } catch (error) {
-  console.error("Signup error:", error);
-  res.status(500).json({ message: "Server error", error: error.message });
-};
+    console.error("Signup error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 
 // LOGIN Route
 router.post("/login", async (req, res) => {
@@ -57,8 +58,8 @@ router.post("/login", async (req, res) => {
       token,
     });
   } catch (error) {
-    res.status(500).json({ message: "Login Error", error });
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Login Error", error: error.message });
   }
-})
-})
+});
 export default router;

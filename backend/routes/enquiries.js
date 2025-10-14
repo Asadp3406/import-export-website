@@ -34,8 +34,13 @@ router.post('/', async (req, res) => {
     const enquiry = new Enquiry(req.body)
     await enquiry.save()
     
+    // Populate product and supplier for email
+    await enquiry.populate('product supplier')
+    
+    // Increment enquiry count on product
     await Product.findByIdAndUpdate(req.body.product, { $inc: { enquiries: 1 } })
     
+    // Send confirmation email
     await sendEnquiryEmail(enquiry)
     
     res.status(201).json({ 
@@ -43,6 +48,7 @@ router.post('/', async (req, res) => {
       enquiry 
     })
   } catch (error) {
+    console.error('Enquiry submission error:', error)
     res.status(400).json({ error: error.message })
   }
 })

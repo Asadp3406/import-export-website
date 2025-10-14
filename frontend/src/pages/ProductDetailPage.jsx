@@ -1,30 +1,64 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { MapPin, Phone, Mail, CheckCircle, X } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
-
-const productImages = [
-  'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600',
-  'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&sat=-50',
-  'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&brightness=10'
-]
-
-const relatedProducts = Array(4).fill(null).map((_, i) => ({
-  id: i + 1,
-  name: `Related Product ${i + 1}`,
-  price: `₹${(i + 1) * 150} - ₹${(i + 1) * 300}`,
-  moq: `${(i + 1) * 100} Kg`,
-  image: `https://images.unsplash.com/photo-${1580000000000 + i * 10000000}?w=400`,
-  seller: `Supplier ${i + 1}`,
-  location: 'Mumbai, India',
-  attributes: ['Certified', 'Premium']
-}))
+import api from '../api'
 
 export default function ProductDetailPage() {
   const { productSlug } = useParams()
   const [selectedImage, setSelectedImage] = useState(0)
   const [showEnquiryModal, setShowEnquiryModal] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
+  const [product, setProduct] = useState(null)
+  const [relatedProducts, setRelatedProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await api.get(`/products/${productSlug}`)
+        setProduct(response.data)
+        
+        // Fetch related products
+        const relatedResponse = await api.get('/products?limit=4')
+        setRelatedProducts(relatedResponse.data.products.filter(p => p.slug !== productSlug))
+      } catch (error) {
+        console.error('Failed to fetch product:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProduct()
+  }, [productSlug])
+
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-gray-600">Loading product...</div>
+      </div>
+    )
+  }
+
+  if (!product) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Product Not Found</h2>
+          <p className="text-gray-600">The product you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const productImages = product.images && product.images.length > 0 
+    ? product.images 
+    : ['https://via.placeholder.com/600']
+  const price = `₹${product.price.min} - ₹${product.price.max}`
+  const moq = `${product.moq.quantity} ${product.moq.unit}`
+  const supplierName = product.supplier?.companyName || 'Supplier'
+  const supplierLocation = product.supplier?.address?.city 
+    ? `${product.supplier.address.city}, ${product.supplier.address.state}, ${product.supplier.address.country}` 
+    : 'India'
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -64,24 +98,26 @@ export default function ProductDetailPage() {
 
                 <div>
                   <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                    Organic Ashwagandha Powder - Premium Quality
+                    {product.name}
                   </h1>
-                  <div className="text-3xl font-bold text-primary mb-2">₹250 - ₹450</div>
-                  <div className="text-gray-600 mb-4">Per Kilogram</div>
+                  <div className="text-3xl font-bold text-primary mb-2">{price}</div>
+                  <div className="text-gray-600 mb-4">Per {product.moq.unit}</div>
 
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between py-2 border-b">
                       <span className="text-gray-600">MOQ:</span>
-                      <span className="font-semibold">100 Kg</span>
+                      <span className="font-semibold">{moq}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b">
-                      <span className="text-gray-600">Type:</span>
-                      <span className="font-semibold">Organic Powder</span>
+                      <span className="text-gray-600">Category:</span>
+                      <span className="font-semibold">{product.category?.name || 'N/A'}</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b">
-                      <span className="text-gray-600">Certification:</span>
-                      <span className="font-semibold">ISO, FSSAI</span>
-                    </div>
+                    {product.attributes && product.attributes.length > 0 && product.attributes.map((attr, idx) => (
+                      <div key={idx} className="flex justify-between py-2 border-b">
+                        <span className="text-gray-600">{attr.key}:</span>
+                        <span className="font-semibold">{attr.value}</span>
+                      </div>
+                    ))}
                     <div className="flex justify-between py-2 border-b">
                       <span className="text-gray-600">Packaging:</span>
                       <span className="font-semibold">25 Kg Bags</span>
@@ -121,20 +157,20 @@ export default function ProductDetailPage() {
                 {activeTab === 'description' && (
                   <div className="prose max-w-none">
                     <p className="text-gray-700 leading-relaxed">
-                      Premium quality organic Ashwagandha powder sourced from certified farms. 
-                      Known for its adaptogenic properties and health benefits. Perfect for export 
-                      and bulk orders. Our product undergoes strict quality control and is tested 
-                      for purity and potency.
+                      {product.description}
                     </p>
                   </div>
                 )}
 
                 {activeTab === 'specifications' && (
                   <div className="grid grid-cols-2 gap-4">
-                    <div><strong>Origin:</strong> India</div>
-                    <div><strong>Shelf Life:</strong> 24 Months</div>
-                    <div><strong>Moisture:</strong> Max 10%</div>
-                    <div><strong>Purity:</strong> 99%</div>
+                    {product.specifications && product.specifications.length > 0 ? (
+                      product.specifications.map((spec, idx) => (
+                        <div key={idx}><strong>{spec.key}:</strong> {spec.value}</div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 text-gray-500">No specifications available</div>
+                    )}
                   </div>
                 )}
               </div>
@@ -147,13 +183,15 @@ export default function ProductDetailPage() {
                 <CheckCircle className="text-green-500 mr-2" size={24} />
                 <span className="font-semibold text-lg">Verified Supplier</span>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Herbal Exports Ltd</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{supplierName}</h3>
               <div className="text-sm text-gray-600 space-y-2 mb-4">
                 <div className="flex items-center">
                   <MapPin size={16} className="mr-2" />
-                  Mumbai, Maharashtra, India
+                  {supplierLocation}
                 </div>
-                <div>Business Type: Manufacturer, Exporter</div>
+                {product.supplier?.businessType && (
+                  <div>Business Type: {product.supplier.businessType.charAt(0).toUpperCase() + product.supplier.businessType.slice(1)}</div>
+                )}
                 <div>Years in Business: 15+ Years</div>
               </div>
               <button
@@ -177,21 +215,48 @@ export default function ProductDetailPage() {
       </div>
 
       {showEnquiryModal && (
-        <EnquiryModal onClose={() => setShowEnquiryModal(false)} />
+        <EnquiryModal onClose={() => setShowEnquiryModal(false)} product={product} />
       )}
     </div>
   )
 }
 
-function EnquiryModal({ onClose }) {
+function EnquiryModal({ onClose, product }) {
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', pincode: '', enquiryType: 'product', message: ''
   })
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    alert('Enquiry submitted! Our team will contact you shortly.')
-    onClose()
+    setSubmitting(true)
+    
+    try {
+      const enquiryData = {
+        ...formData,
+        product: product._id
+      }
+      
+      // Only add supplier if it exists
+      if (product.supplier) {
+        enquiryData.supplier = product.supplier._id || product.supplier
+      }
+      
+      console.log('📤 Submitting enquiry:', enquiryData)
+      
+      const response = await api.post('/enquiries', enquiryData)
+      console.log('✅ Enquiry response:', response.data)
+      
+      alert('✅ Enquiry submitted successfully! Check your email for confirmation.')
+      onClose()
+    } catch (error) {
+      console.error('❌ Failed to submit enquiry:', error)
+      console.error('Error details:', error.response?.data)
+      const errorMsg = error.response?.data?.error || error.message
+      alert(`❌ Failed to submit enquiry: ${errorMsg}`)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -250,8 +315,12 @@ function EnquiryModal({ onClose }) {
             value={formData.message}
             onChange={(e) => setFormData({...formData, message: e.target.value})}
           />
-          <button type="submit" className="w-full btn-primary py-3">
-            Submit Inquiry
+          <button 
+            type="submit" 
+            disabled={submitting}
+            className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? 'Submitting...' : 'Submit Inquiry'}
           </button>
         </form>
       </div>

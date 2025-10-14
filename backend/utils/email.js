@@ -11,6 +11,17 @@ const transporter = nodemailer.createTransport({
 })
 
 export async function sendEnquiryEmail(enquiry) {
+  // Populate product if it's just an ID
+  let productName = 'Product'
+  if (enquiry.product) {
+    if (typeof enquiry.product === 'object' && enquiry.product.name) {
+      productName = enquiry.product.name
+    } else {
+      // If it's just an ID, we'll use a generic name
+      productName = 'Your selected product'
+    }
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: enquiry.email,
@@ -21,7 +32,7 @@ export async function sendEnquiryEmail(enquiry) {
       <p>We have received your enquiry and our team will contact you shortly.</p>
       <p><strong>Enquiry Details:</strong></p>
       <ul>
-        <li>Product: ${enquiry.product}</li>
+        <li>Product: ${productName}</li>
         <li>Type: ${enquiry.enquiryType}</li>
         <li>Message: ${enquiry.message}</li>
       </ul>
@@ -31,8 +42,9 @@ export async function sendEnquiryEmail(enquiry) {
 
   try {
     await transporter.sendMail(mailOptions)
-    console.log('Email sent successfully')
+    console.log('✅ Email sent successfully to:', enquiry.email)
   } catch (error) {
-    console.error('Email error:', error)
+    console.error('❌ Email error:', error.message)
+    // Don't throw error - enquiry should still be saved even if email fails
   }
 }

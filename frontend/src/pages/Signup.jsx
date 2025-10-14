@@ -10,14 +10,16 @@ export default function Signup() {
     e.preventDefault();
     try {
       const res = await api.post("/auth/signup", form);
+      
       if (res.data && res.data.user) {
-        alert("Signup successful! Please login.");
+        alert(`✅ Signup successful! Welcome ${res.data.user.name}. Please login.`);
         navigate("/login");
       } else {
-        alert("Signup failed");
+        alert("❌ Signup failed");
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
+      console.error('Signup error:', err);
+      alert(`❌ ${err.response?.data?.message || "Signup failed"}`);
     }
   };
 
